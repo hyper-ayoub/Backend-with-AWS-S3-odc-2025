@@ -19,6 +19,9 @@ Terraform can use an **S3 bucket** to store the state file.
   `--attribute-definitions AttributeName=LockID,AttributeType=S \`  
   `--key-schema AttributeName=LockID,KeyType=HASH \`  
   `--billing-mode PAY_PER_REQUEST`
+  
+<img width="1049" height="641" alt="Capture d’écran 2025-08-30 015828" src="https://github.com/user-attachments/assets/58bfb01a-bd09-4028-ab8d-a06460125bd6" />
+<img width="1616" height="299" alt="Capture d’écran 2025-08-30 015948" src="https://github.com/user-attachments/assets/a4342328-ef79-4238-8eb3-ad4e904f4b11" />
 
 ### **2\. Configure Terraform backend**
 
@@ -149,4 +152,5 @@ Typical workflow for two people working together:
 4. **Collaborator B**: Runs another change.
 
 State is always **in sync** because of remote backend. 
+
 
