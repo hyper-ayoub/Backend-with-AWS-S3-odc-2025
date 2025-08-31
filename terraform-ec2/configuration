@@ -1,0 +1,93 @@
+Step 1: Install Terraform
+On your machine (Ubuntu for example):
+sudo apt update
+sudo apt install -y wget unzip
+
+wget https://releases.hashicorp.com/terraform/1.8.5/terraform_1.8.5_linux_amd64.zip
+unzip terraform_1.8.5_linux_amd64.zip
+sudo mv terraform /usr/local/bin/
+terraform -version
+
+Step 2: Configure AWS CLI
+Make sure you have AWS credentials set up:aws configure
+
+
+Provide:
+AWS Access Key ID
+
+
+AWS Secret Access Key
+
+
+Default region (e.g. us-east-1)
+
+
+Default output: json
+
+
+
+Step 3: Create Terraform project
+Make a project folder:
+mkdir terraform-ec2 && cd terraform-ec2
+
+Inside, create main.tf
+nano :
+provider "aws" {
+  region = "us-east-2"
+}
+
+resource "aws_instance" "wa_ec2" {
+  ami           = "ami-0c55b159cbfafe1f0" # Amazon Linux 2 AMI (update with your region)
+  instance_type = "t2.micro"
+
+  # Use existing VPC + Subnet
+  subnet_id              = "subnet-0123456789abcdef0" # <-- replace with your subnet ID
+  vpc_security_group_ids = ["sg-0123456789abcdef0"]   # <-- replace with your security group ID
+
+  key_name = "my-keypair" # <-- replace with your AWS key pair name
+
+  tags = {
+    Name = "MyTerraformEC2"
+  }
+}
+
+ Step 4: Initialize Terraform
+terraform init
+
+ Step 5: Plan infrastructure
+terraform plan
+
+This will show what Terraform is going to create.
+ Step 6: Apply to create EC2
+terraform apply -auto-approve
+
+Terraform will create the EC2 instance 🎉
+
+Step 7: Destroy when done
+To avoid AWS costs:
+terraform destroy -auto-approve
+
+
+Things you need:
+VPC ID → not directly needed, since Subnet is already inside a VPC.
+
+
+Subnet ID → copy from AWS Console (EC2 → Subnets).
+
+
+Security Group ID → copy from AWS Console (VPC → Security Groups).
+
+
+Key Pair Name → create in EC2 Console if not already (used for SSH login).
+
+
+ Deploy
+terraform init
+terraform plan
+terraform apply -auto-approve
+
+This will launch your EC2 inside your existing VPC & Subnet, using your own security group and key pair.
+Do you want me to also add a Security Group creation inside Terraform, or you prefer always using existing security groups from AWS Console?
+
+
+

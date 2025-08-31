@@ -1,0 +1,98 @@
+Step 1: Find a dynamic Amazon Linux 2 AMI
+Terraform has a data source for AMIs:
+Get latest Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["137112412989"] # Amazon official account
+}
+
+Step 2: Pick a Public Subnet
+A subnet is public if it is associated with a route table that has a route to an Internet Gateway (igw).
+ We can filter by tag (if your subnets are tagged public), or by looking up manually.
+ But with Terraform, the simplest approach: filter by tags (recommended in real infra).
+Example: if your subnets are tagged like Tier = public, then:
+# Get public subnets from VPC (tagged with Tier=public)
+data "aws_subnet_ids" "public" {
+  vpc_id = data.aws_vpc.default.id
+
+  tags = {
+    Tier = "public"
+  }
+}
+
+
+Then pick one:
+subnet_id = data.aws_subnet_ids.public.ids[0]
+
+
+provider "aws" {
+  region = "us-east-2"
+}
+
+# Get default VPC
+data "aws_vpc" "default" {
+  default = true
+}
+
+#  Get public subnets (must be tagged Tier=public)
+data "aws_subnet_ids" "public" {
+  vpc_id = data.aws_vpc.default.id
+  tags = {
+    Name = "MyPublicSubnet"
+  }
+}
+
+#  Get default SG
+data "aws_security_group" "default" {
+  vpc_id = data.aws_vpc.default.id
+  filter {
+    name   = "group-name"
+    values = ["default"]
+  }
+}
+
+#  Get latest Amazon Linux 2 AMI
+data "aws_ami" "amazon_linux" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["137112412989"] # Amazon official
+}
+
+#  Create EC2
+resource "aws_instance" "my_ec2" {
+  ami           = data.aws_ami.amazon_linux.id
+  instance_type = "t2.micro"
+
+  subnet_id              = data.aws_subnet_ids.public.ids[0]
+  vpc_security_group_ids = [data.aws_security_group.default.id]
+
+  key_name = "my-keypair"
+
+  tags = {
+    Name = "MyTerraformEC2"
+  }
+}
+
+
+
